@@ -1,12 +1,9 @@
 import React from 'react';
-import Loader from 'react-loader-spinner';
+import { TailSpin } from 'react-loader-spinner';
+import './Loader.module.css';
 
-const SpinnerLoader = () => {
-  return (
-    <div className="loader-container">
-      <Loader type="TailSpin" color="#00BFFF" height={80} width={80} />
-    </div>
-  );
+const Loader = () => {
+  return <TailSpin color="#00BFFF" height={80} width={80} />;
 };
 
-export default SpinnerLoader;
+export default Loader;

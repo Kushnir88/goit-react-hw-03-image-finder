@@ -1,93 +1,61 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import axios from 'axios';
 import Searchbar from './Searchbar';
 import ImageGallery from './ImageGallery';
-import { ThreeDots } from 'react-loader-spinner';
-import Modal from './Modal';
 import Button from './Button';
+import Loader from './Loader';
+import Modal from './Modal';
 import './App.module.css';
 
 const API_KEY = '36866998-5308da28c55e509481910204f';
-const API_URL = 'https://pixabay.com/api/';
+const BASE_URL = 'https://pixabay.com/api/';
 
 const App = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [images, setImages] = useState([]);
+  const [page, setPage] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedImage, setSelectedImage] = useState(null);
-  const [page, setPage] = useState(1);
 
-  useEffect(() => {
-    if (searchTerm.trim() === '') {
-      return;
-    }
-
-    const fetchImages = async () => {
-      setIsLoading(true);
-
-      try {
-        const response = await axios.get(API_URL, {
-          params: {
-            key: API_KEY,
-            q: searchTerm,
-            page,
-            per_page: 12,
-            image_type: 'photo',
-            orientation: 'horizontal',
-          },
-        });
-
-        const newImages = response.data.hits.map((image) => ({
-          id: image.id,
-          webformatURL: image.webformatURL,
-          largeImageURL: image.largeImageURL,
-        }));
-
-        setImages((prevImages) => [...prevImages, ...newImages]);
-      } catch (error) {
-        console.error('Error fetching images:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchImages();
-  }, [searchTerm, page]);
-
-  const handleSearch = (searchTerm) => {
-    setSearchTerm(searchTerm);
+  const handleSearchSubmit = (query) => {
+    setSearchTerm(query);
     setImages([]);
     setPage(1);
+    fetchImages(query, 1);
   };
 
-  const loadMoreImages = () => {
-    setPage((prevPage) => prevPage + 1);
+  const handleLoadMore = () => {
+    const nextPage = page + 1;
+    fetchImages(searchTerm, nextPage);
+    setPage(nextPage);
   };
 
-  const openModal = (imageId) => {
-    const selectedImage = images.find((image) => image.id === imageId);
-    setSelectedImage(selectedImage);
+  const fetchImages = (query, page) => {
+    setIsLoading(true);
+    axios
+      .get(`${BASE_URL}?q=${query}&page=${page}&key=${API_KEY}&image_type=photo&orientation=horizontal&per_page=12`)
+      .then((response) => {
+        setImages((prevImages) => [...prevImages, ...response.data.hits]);
+      })
+      .catch((error) => console.log(error))
+      .finally(() => setIsLoading(false));
   };
 
-  const closeModal = () => {
+  const handleImageClick = (image) => {
+    setSelectedImage(image);
+  };
+
+  const handleCloseModal = () => {
     setSelectedImage(null);
   };
 
   return (
     <div className="App">
-      <Searchbar onSubmit={handleSearch} />
-      <ImageGallery images={images} onImageClick={openModal} />
-      {isLoading && (
-        <div className="loader-container">
-          <ThreeDots color="#00BFFF" height={80} width={80} />
-        </div>
-      )}
-      {!isLoading && images.length > 0 && (
-        <Button onClick={loadMoreImages}>Load More</Button>
-      )}
-      {selectedImage && (
-        <Modal imageUrl={selectedImage.largeImageURL} onClose={closeModal} />
-      )}
+      <Searchbar onSubmit={handleSearchSubmit} />
+      <ImageGallery images={images} onImageClick={handleImageClick} />
+      {isLoading && <Loader />}
+      {images.length > 0 && !isLoading && <Button onClick={handleLoadMore} />}
+      {selectedImage && <Modal image={selectedImage} onClose={handleCloseModal} />}
     </div>
   );
 };

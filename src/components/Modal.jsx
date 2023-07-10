@@ -1,37 +1,40 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect } from 'react';
+import PropTypes from 'prop-types';
+import './Modal.module.css';
 
-const Modal = ({ imageUrl, onClose }) => {
-  const modalRef = useRef(null);
-
+const Modal = ({ image, onClose }) => {
   useEffect(() => {
-    const handleKeyDown = (e) => {
-      if (e.keyCode === 27) {
+    const handleKeyDown = (event) => {
+      if (event.code === 'Escape') {
         onClose();
       }
     };
 
-    const handleClickOutside = (e) => {
-      if (modalRef.current && !modalRef.current.contains(e.target)) {
-        onClose();
-      }
-    };
-
-    document.addEventListener('keydown', handleKeyDown);
-    document.addEventListener('mousedown', handleClickOutside);
+    window.addEventListener('keydown', handleKeyDown);
 
     return () => {
-      document.removeEventListener('keydown', handleKeyDown);
-      document.removeEventListener('mousedown', handleClickOutside);
+      window.removeEventListener('keydown', handleKeyDown);
     };
   }, [onClose]);
 
+  const handleBackdropClick = (event) => {
+    if (event.target === event.currentTarget) {
+      onClose();
+    }
+  };
+
   return (
-    <div className="overlay">
-      <div className="modal" ref={modalRef}>
-        <img src={imageUrl} alt="" />
+    <div className="Overlay" onClick={handleBackdropClick}>
+      <div className="Modal">
+        <img src={image.largeImageURL} alt={image.tags} />
       </div>
     </div>
   );
+};
+
+Modal.propTypes = {
+  image: PropTypes.object.isRequired,
+  onClose: PropTypes.func.isRequired,
 };
 
 export default Modal;
