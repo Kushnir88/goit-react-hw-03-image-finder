@@ -6,9 +6,11 @@ class Button extends React.Component {
   render() {
     const { onClick } = this.props;
     return (
-      <button type="button" className={styles.Button} onClick={onClick}>
-        Load more
-      </button>
+      <div className={styles.ButtonContainer}>
+        <button type="button" className={styles.Button} onClick={onClick}>
+          Load more
+        </button>
+      </div>
     );
   }
 }
